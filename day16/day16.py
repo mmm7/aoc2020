@@ -1,4 +1,5 @@
 from collections import defaultdict
+from functools import reduce
 from input import FIELDS,YOUR,NEARBY
 
 #print(FIELDS)
@@ -23,47 +24,35 @@ for n in NEARBY:
 
 print("1--->",invalid)
 
+options = {f:set(range(len(YOUR))) for f in FIELDS.keys()}
 
-options = {}
-for i in range(len(YOUR)):
-  options[i]=set(FIELDS.keys())
-
-def validate(i,nn):
-  for k,v in FIELDS.items():
-    for a,b in v:
-      if a<=nn and nn<=b: break
-    else: options[i].discard(k)
+def validate(i,value):
+  for field,ranges in FIELDS.items():
+    for a,b in ranges:
+      if a<=value and value<=b: break
+    else: options[field].discard(i)
 
 for n in VALIDNEARBY:
-  for i,nn in enumerate(n):
-    validate(i,nn)
+  for idx,value in enumerate(n):
+    validate(idx,value)
 
-#print(options)
-
-optionsr = defaultdict(set)
-for k,v in options.items():
-  for vv in v:
-    optionsr[vv].add(k)
-
-#print(optionsr)
-
-res = {}
+mapping = {}
 while True:
   found = None
-  for k,v in optionsr.items():
+  for k,v in options.items():
     if len(v) == 1:
       found = k
       break
-  if not found: break
-  foundv = list(optionsr[found]).pop()
-  res[found] = foundv
-  for k in optionsr:
-    optionsr[k].discard(foundv)
+  else: break
+  foundv = list(options[found]).pop()
+  mapping[found] = foundv
+  for k in options:
+    options[k].discard(foundv)
+print(mapping)
 
-print(res)
 
 ret = 1
-for k,v in res.items():
+for k,v in mapping.items():
   if k.startswith("departure"):
     ret *= YOUR[v]
     print(v, YOUR[v], ret)
