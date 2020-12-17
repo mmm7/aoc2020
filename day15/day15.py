@@ -7,17 +7,15 @@ INPUTS= [
 ]
 
 def play(input, target):
-  m = defaultdict(list)
+  #m = defaultdict(tuple)
+  m = [()] * 30000000
   for n,x in enumerate(input):
-    m[x].append(n)
+    m[x] = ((n,n))
     last = x
   while n < target-1:
     n+=1
-    if len(m[last])==1:
-      last = 0
-    else:
-      last = m[last][-1]-m[last][-2]
-    m[last].append(n)
+    last = m[last][-1]-m[last][-2]
+    m[last] = (m[last][-1], n) if m[last] else (n,n)
     if not n%1000000: print(n)
   return last
 
