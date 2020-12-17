@@ -6,20 +6,13 @@ def get_mask(l):
 
 def get_masks(l):
   smask = get_mask(l)
-  MASKOR,MASKAND = 0,0
-  for c in smask:
-    MASKOR <<= 1
-    MASKOR += (0,1)[c=='1']
-    MASKAND <<= 1
-    MASKAND += (0,1)[c!='0']
-  return (MASKOR,MASKAND)
+  return (int(smask.replace('X','0'), 2), int(smask.replace('X','1'), 2))
 
 MASKOR,MASKAND = get_masks('mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X')
-assert MASKOR==64
+assert MASKOR==64, MASKOR
+assert MASKAND==68719476733, MASKAND
 
 def get_op(l):
-  l = l.strip()
-  m = re.fullmatch('mem\[(.*)\] = (.*)', l)
-  v = 0
+  m = re.fullmatch('mem\[(.*)\] = (.*)', l.strip())
   return(int(m.group(1)), int(m.group(2)))
 
