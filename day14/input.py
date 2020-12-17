@@ -5,7 +5,7 @@ def get_mask(l):
   return str(m.group(1))
 
 def get_masks(l):
-  smast = get_mask(l)
+  smask = get_mask(l)
   MASKOR,MASKAND = 0,0
   for c in smask:
     MASKOR <<= 1
