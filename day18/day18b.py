@@ -1,38 +1,40 @@
-import numpy as np
-
 from input import I
 
-def ev(s):
-  #print('ev:',s)
-  lp,rp,pn = None,None,0
-  for i,c in enumerate(s):
-    if c == '(':
-      if lp is None: lp = i
-      pn+=1
-    if c == ')':
-      pn-=1
-      if pn==0:
-        rp=i
-        break
-  if lp is not None:
-    #print(s[:lp],'|', s[lp+1:rp],'|', s[rp+1:])
-    return ev(s[:lp] + str(ev(s[lp+1:rp])) + s[rp+1:])
+def app(lastop, stack, num):
+  if lastop == '*': stack.append(num)
+  elif lastop == '/': stack.append(1/num)
+  elif lastop == '-': stack.append(int(stack.pop()-num))
+  elif lastop == '+': stack.append(stack.pop()+num)
 
-  stack = []
-  num = 0
+def collapse(stack):
+  num = 1
+  while stack[-1] != '(':
+    num *= stack.pop(-1)
+  stack.pop(-1)
+  return stack.pop(-1),num
+
+def ev(s):
+  stack = ['*','(']
+  num = 1
   lastop = '*'
   for c in s+'*':
+            #print(c,num,lastop, stack)
             if c == ' ': continue
             if c.isdigit():
-                num = 10*num + int(c)
+                num = int(c)
                 continue
-            if lastop == '*': stack.append(num)
-            elif lastop == '/': stack.append(1/num)
-            elif lastop == '-': stack.append(int(stack.pop()-num))
-            elif lastop == '+': stack.append(stack.pop()+num)
+            if c == '(':
+                stack += [lastop, '(']
+                lastop = '*'
+                continue
+            if c == ')':
+              app(lastop, stack, num)
+              lastop, num = collapse(stack)
+            app(lastop, stack, num)
             num,lastop = 0,c
-  return np.prod(stack)
+  return collapse(stack)[1]
 
+assert ev('(1+2)') == 3, ev('(1+2)')
 assert ev('1 + 2 * 3 + 4 * 5 + 6') == 231
 assert ev('1 + (2 * 3) + (4 * (5 + 6))') == 51
 assert ev('((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2') == 23340
