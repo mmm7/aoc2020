@@ -8,21 +8,14 @@ from input import T,E
 # print(E)
 
 edgecount = Counter([item for sublist in E.values() for item in sublist])
-#print(edgecount)
-
-EE=defaultdict(set)
-singles=defaultdict(int)
-for t,edges in E.items():
-  for i,edge in enumerate(edges):
-    #EE[edge][abs(t)] = (t<0, i)
-    EE[edge].add((t, i))
-    if edgecount[edge]==1 and t>0:
-      singles[t]+=1
-#print(singles)
 
 corners=[]
-for t,s in singles.items():
-  if s==2: corners.append(t)
+EE=defaultdict(set)
+for t,edges in E.items():
+  if t>0 and list(map(lambda x: edgecount[x], edges)).count(1)==2: corners.append(t)
+  for i,edge in enumerate(edges):
+    EE[edge].add((t, i))
+
 print('1--->',np.product(corners))
 
 # EE = {210: {(2311, 0), (-1427, 1)}, 89: {(2311, 1), (3079, 3)}, ...
@@ -47,6 +40,7 @@ assert match(_E, (-400, -5), 'E')==9
 assert match(_E, (-400, -5), 'S')==8
 assert match(_E, (-400, -5), 'W')==7
 
+# Get (tile, rotation) so that N matches `edge`. Exclude all tiles from `excl`.
 def tile_for_edge(EE, edge, excl=None):
   if excl is None: excl = []
   ret = []
@@ -72,10 +66,9 @@ def tilefn(T):
     return t[1:-1,1:-1]
   return tile
 
-tlt=corners[0]
-print(tlt, E[tlt])
-tlr=0
+tlt,tlr = corners[0],0
 while not (edgecount[match(E,(tlt,tlr),'N')]==1 and edgecount[match(E,(tlt,tlr),'W')]==1): tlr+=1
+print('starting corner:', tlt, E[tlt])
 lines = []
 line = [(tlt,tlr)]
 while True:    # Build map
@@ -83,12 +76,37 @@ while True:    # Build map
     ne = tile_for_edge(EE, match(E, line[-1], 'E'), [line[-1][0]])
     if not ne: break
     line.append((ne[0],(ne[1]+1)%4))
-  ne = tile_for_edge(EE, match(E, line[0], 'S'), [line[0][0]])
-  linem = np.concatenate(list(map(tilefn(T), line)), axis=1)
-  lines.append(linem)
-  print(linem)
-  if not ne: break
-  line = [ne]
+  nxt = tile_for_edge(EE, match(E, line[0], 'S'), [line[0][0]])
+  lines.append(np.concatenate(list(map(tilefn(T), line)), axis=1))
+  if not nxt: break
+  line = [nxt]
 
 board = np.concatenate(lines)
 print(board)
+
+# |01234567890123456789|
+#0|                  # |
+#1|#    ##    ##    ###|
+#2| #  #  #  #  #  #   |
+MONSTER = np.array([
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+[1,0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0,1,1,1],
+[0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0],
+])
+
+def findmonster(b,m):
+  bx,by = b.shape
+  mx,my = m.shape
+  dx,dy = bx-mx, by-my
+  for x in range(dx+1):
+    for y in range(dy+1):
+      if (np.logical_and(b[x:x+mx, y:y+my], m) == (m!=0)).all():
+        b[x:x+mx, y:y+my] += m
+
+for _ in range(2):
+  for _ in range(4):
+    findmonster(board, MONSTER)
+    board = np.rot90(board)
+  board = np.transpose(board)
+
+print('2--->', (board==1).sum())
