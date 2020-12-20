@@ -14,7 +14,6 @@ def _vectors(m):
     yield int(''.join(map(str,m[:1, 0:][0])), 2)
     m = np.rot90(m)
 
-
 while True:
   tile = None
   while tile is None and lines:
@@ -22,15 +21,15 @@ while True:
     if not line: continue
     tile = int(line[4:].strip(' :'))
   if tile is None: break
-  print('======================', tile)
+  #print('======================', tile)
   img = []
   while lines:
     l = lines.pop(0)
-    print(l)
+    #print(l)
     if not l: break
     img.append(list(map(_dec,l)))
   imm = np.array(img)
-  print(img,'\n',imm)
+  #print(img,'\n',imm)
   T[tile] = imm
   E[tile] = list(_vectors(imm))
   imm=np.transpose(imm)
